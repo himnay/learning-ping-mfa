@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: learning-ping-mfa
+  security:
+    oauth2:
+      client:
+        registration:
+          pingone-worker:
+            provider: pingone-worker
+            client-id: ${PING_WORKER_CLIENT_ID:changeme-client-id}
+            client-secret: ${PING_WORKER_CLIENT_SECRET:changeme-client-secret}
+            authorization-grant-type: client_credentials
+            scope: openid
+        provider:
+          pingone-worker:
+            token-uri: https://auth.pingone.com/${PING_ENVIRONMENT_ID:changeme-environment-id}/as/token
+
+server:
+  port: 8090
+
+ping:
+  environment-id: ${PING_ENVIRONMENT_ID:changeme-environment-id}
+  # Region-specific base domain — auth.pingone.com/api.pingone.com (NA), .eu (Europe),
+  # .asia (APAC), .ca (Canada). Match whichever your PingOne environment's region uses.
+  auth-base-url: https://auth.pingone.com
+  api-base-url: https://api.pingone.com
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
