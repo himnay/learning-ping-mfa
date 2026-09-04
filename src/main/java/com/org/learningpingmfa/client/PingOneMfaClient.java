@@ -5,7 +5,9 @@ import com.org.learningpingmfa.dto.OtpCheckRequest;
 import com.org.learningpingmfa.dto.PingOneDeviceRequest;
 import com.org.learningpingmfa.dto.PingOneDeviceResponse;
 import com.org.learningpingmfa.dto.RegisterDeviceRequest;
+
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -29,7 +31,9 @@ public class PingOneMfaClient {
         this.apiClient = apiClient;
     }
 
-    /** POST /environments/{envId}/users/{userId}/devices */
+    /**
+     * POST /environments/{envId}/users/{userId}/devices
+     */
     public PingOneDeviceResponse registerDevice(String userId, RegisterDeviceRequest request) {
         PingOneDeviceRequest body = PingOneDeviceRequest.of(request.type(), request.target(), request.nickname());
         return apiClient.post()
@@ -39,7 +43,9 @@ public class PingOneMfaClient {
                 .body(PingOneDeviceResponse.class);
     }
 
-    /** GET /environments/{envId}/users/{userId}/devices */
+    /**
+     * GET /environments/{envId}/users/{userId}/devices
+     */
     public List<PingOneDeviceResponse> listDevices(String userId) {
         PingOneDevicesPage page = apiClient.get()
                 .uri("/users/{userId}/devices", userId)
@@ -48,7 +54,9 @@ public class PingOneMfaClient {
         return page == null || page._embedded() == null ? List.of() : page._embedded().devices();
     }
 
-    /** POST /{envId}/deviceAuthentications — kicks off a challenge against the user's active device. */
+    /**
+     * POST /{envId}/deviceAuthentications — kicks off a challenge against the user's active device.
+     */
     public DeviceAuthenticationResponse initiateDeviceAuthentication(String userId) {
         return authClient.post()
                 .uri("/deviceAuthentications")
@@ -57,7 +65,9 @@ public class PingOneMfaClient {
                 .body(DeviceAuthenticationResponse.class);
     }
 
-    /** PUT /{envId}/deviceAuthentications/{id} with {"otp": "..."} — completes an OTP_REQUIRED challenge. */
+    /**
+     * PUT /{envId}/deviceAuthentications/{id} with {"otp": "..."} — completes an OTP_REQUIRED challenge.
+     */
     public DeviceAuthenticationResponse checkOtp(String deviceAuthenticationId, OtpCheckRequest otp) {
         return authClient.put()
                 .uri("/deviceAuthentications/{id}", deviceAuthenticationId)

@@ -1,0 +1,16 @@
+${AnsiColor.BRIGHT_BLUE}
+██████╗ ██╗███╗   ██╗ ██████╗    ███╗   ███╗███████╗ █████╗
+██╔══██╗██║████╗  ██║██╔════╝    ████╗ ████║██╔════╝██╔══██╗
+██████╔╝██║██╔██╗ ██║██║  ███╗   ██╔████╔██║█████╗  ███████║
+██╔═══╝ ██║██║╚██╗██║██║   ██║   ██║╚██╔╝██║██╔══╝  ██╔══██║
+██║     ██║██║ ╚████║╚██████╔╝   ██║ ╚═╝ ██║██║     ██║  ██║
+╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝    ╚═╝     ╚═╝╚═╝     ╚═╝  ╚═╝
+${AnsiColor.DEFAULT}
+:: ${spring.application.name} ::           learning REST API for PingOne MFA
+:: Spring Boot ::             ${spring-boot.version}
+:: Java ::                    ${java.version}
+:: Port ::                    ${server.port:8090}
+:: Profile ::                 ${spring.profiles.active:default}
+:: Environment ::              ${ping.environment-id:unset}
+
+Device pairing (SMS/Voice/Email/TOTP) + deviceAuthentications (OTP/push) — worker client_credentials only
