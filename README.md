@@ -26,7 +26,7 @@
 | Component        | Version / Detail                                             |
 |-------------------|----------------------------------------------------------------|
 | Java              | 25                                                              |
-| Spring Boot       | 4.1.0 (via super-pom)                                           |
+| Spring Boot       | 4.1.1 (via super-pom 1.1.2, as of 2026)                         |
 | Spring Security   | OAuth2 Client — client_credentials only, no login flow          |
 | HTTP client       | `RestClient` + `OAuth2ClientHttpRequestInterceptor`             |
 | API docs          | springdoc-openapi (Swagger UI)                                  |
@@ -158,7 +158,7 @@ sequenceDiagram
 
     U->>C: enters the code they received
     C->>P: POST /authentications/{id}/otp {otp}
-    P->>PO: PUT .../deviceAuthentications/{id} {otp}
+    P->>PO: POST .../deviceAuthentications/{id} {otp}<br/>Content-Type: application/vnd.pingidentity.otp.check+json
     PO-->>P: {status: COMPLETED or FAILED}
     P-->>C: challenge result
 ```

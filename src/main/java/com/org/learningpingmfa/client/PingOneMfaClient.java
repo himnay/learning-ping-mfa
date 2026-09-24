@@ -9,6 +9,7 @@ import com.org.learningpingmfa.dto.RegisterDeviceRequest;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -20,6 +21,9 @@ import org.springframework.web.client.RestClient;
  */
 @Component
 public class PingOneMfaClient {
+
+    /** Action media type for the otp.check step of a device authentication. */
+    static final MediaType OTP_CHECK = MediaType.parseMediaType("application/vnd.pingidentity.otp.check+json");
 
     private final RestClient authClient;
     private final RestClient apiClient;
@@ -66,11 +70,14 @@ public class PingOneMfaClient {
     }
 
     /**
-     * PUT /{envId}/deviceAuthentications/{id} with {"otp": "..."} — completes an OTP_REQUIRED challenge.
+     * POST /{envId}/deviceAuthentications/{id} with {"otp": "..."} — completes an OTP_REQUIRED challenge.
+     * PingOne selects the action by media type: the body must be sent as
+     * {@code application/vnd.pingidentity.otp.check+json} (plain JSON or PUT is rejected).
      */
     public DeviceAuthenticationResponse checkOtp(String deviceAuthenticationId, OtpCheckRequest otp) {
-        return authClient.put()
+        return authClient.post()
                 .uri("/deviceAuthentications/{id}", deviceAuthenticationId)
+                .contentType(OTP_CHECK)
                 .body(otp)
                 .retrieve()
                 .body(DeviceAuthenticationResponse.class);
