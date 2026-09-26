@@ -46,6 +46,17 @@
 
 </ul>
 
+In a real sign-in flow the second factor is rarely demanded every time: a policy weighs signals
+(who, from which device and location, which app, how risky it looks) and then allows, steps up to
+MFA, or blocks. PingOne expresses that as sign-on / MFA policies; this API is what runs once the
+policy has said "require MFA":
+
+<p align="center">
+  <img src="image/risk-based-mfa.png" alt="Signals (user and location, device, application, real-time risk) feed a decision: allow access, require MFA, or block access, before reaching apps and data" width="620"/>
+</p>
+
+<p align="center"><sub>Diagram: <a href="https://learn.microsoft.com/entra/identity/authentication/howto-mfa-getstarted">Microsoft Entra documentation</a> (MIT, © Microsoft) — the same pattern PingOne policies implement.</sub></p>
+
 <a id="architecture"></a>
 ## <span style="color:hsl(193,80%,58%)">3. 🏗️ Architecture</span>
 

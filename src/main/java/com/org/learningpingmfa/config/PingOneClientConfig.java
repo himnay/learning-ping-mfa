@@ -2,6 +2,7 @@ package com.org.learningpingmfa.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider;
@@ -10,6 +11,9 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.client.OAuth2ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestClient;
+
+import java.net.http.HttpClient;
+import java.time.Duration;
 
 /**
  * Wires a {@link RestClient} whose every request is stamped with a bearer token obtained
@@ -42,6 +46,7 @@ public class PingOneClientConfig {
     @Bean
     RestClient pingOneAuthRestClient(OAuth2AuthorizedClientManager pingOneAuthorizedClientManager, PingOneProperties properties) {
         return RestClient.builder()
+                .requestFactory(boundedTimeouts())
                 .baseUrl(properties.authBaseUrl() + "/" + properties.environmentId())
                 .requestInterceptor(pingOneOAuth2Interceptor(pingOneAuthorizedClientManager))
                 .build();
@@ -51,6 +56,7 @@ public class PingOneClientConfig {
     @Bean
     RestClient pingOneApiRestClient(OAuth2AuthorizedClientManager pingOneAuthorizedClientManager, PingOneProperties properties) {
         return RestClient.builder()
+                .requestFactory(boundedTimeouts())
                 .baseUrl(properties.apiBaseUrl() + "/environments/" + properties.environmentId())
                 .requestInterceptor(pingOneOAuth2Interceptor(pingOneAuthorizedClientManager))
                 .build();
@@ -60,5 +66,13 @@ public class PingOneClientConfig {
         OAuth2ClientHttpRequestInterceptor interceptor = new OAuth2ClientHttpRequestInterceptor(manager);
         interceptor.setClientRegistrationIdResolver(request -> "pingone-worker");
         return interceptor;
+    }
+
+    /** Bounded connect/read timeouts — the JDK client's default read timeout is infinite, so a hung upstream would pin the calling thread. */
+    private static JdkClientHttpRequestFactory boundedTimeouts() {
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(
+                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build());
+        factory.setReadTimeout(Duration.ofSeconds(30));
+        return factory;
     }
 }
