@@ -26,7 +26,7 @@
 | Component        | Version / Detail                                             |
 |-------------------|----------------------------------------------------------------|
 | Java              | 25                                                              |
-| Spring Boot       | 4.1.1 (via super-pom 1.1.2, as of 2026)                         |
+| Spring Boot       | 4.1.1 (via super-pom 1.1.3, as of 2026)                         |
 | Spring Security   | OAuth2 Client — client_credentials only, no login flow          |
 | HTTP client       | `RestClient` + `OAuth2ClientHttpRequestInterceptor`             |
 | API docs          | springdoc-openapi (Swagger UI)                                  |
