@@ -28,10 +28,10 @@
 | Java              | 25                                                              |
 | Spring Boot       | 4.1.1 (via super-pom 1.1.3, as of 2026)                         |
 | Spring Security   | OAuth2 Client — client_credentials only, no login flow          |
-| HTTP client       | `RestClient` + `OAuth2ClientHttpRequestInterceptor`             |
+| HTTP client       | [`RestClient`][RestClient] + [`OAuth2ClientHttpRequestInterceptor`][OAuth2ClientHttpRequestInterceptor]             |
 | API docs          | springdoc-openapi (Swagger UI)                                  |
 | Identity provider | PingOne (Ping Identity) — Platform API + MFA API                |
-| Tests             | JUnit 5, `@WebMvcTest` + Mockito                                 |
+| Tests             | JUnit 5, [`@WebMvcTest`][WebMvcTest] + Mockito                                 |
 | Build             | Maven 3.9+                                                      |
 
 <a id="what-is-pingone-mfa"></a>
@@ -70,8 +70,8 @@ flowchart LR
 
 <ul>
 
-- `PingOneClientConfig` wires two `RestClient` beans — one per PingOne domain, since device CRUD lives on the **Management API** domain and device authentication lives on the **Auth API** domain (confirmed against PingOne's live API docs, 2026-09; not the same base URL).
-- Both share one `OAuth2AuthorizedClientManager` doing `client_credentials` against the `pingone-worker` registration — Spring Security caches the token and re-fetches it once it expires, so `PingOneMfaClient` never touches token logic directly (`OAuth2ClientHttpRequestInterceptor` stamps every outgoing request).
+- `PingOneClientConfig` wires two [`RestClient`][RestClient] beans — one per PingOne domain, since device CRUD lives on the **Management API** domain and device authentication lives on the **Auth API** domain (confirmed against PingOne's live API docs, 2026-09; not the same base URL).
+- Both share one [`OAuth2AuthorizedClientManager`][OAuth2AuthorizedClientManager] doing `client_credentials` against the `pingone-worker` registration — Spring Security caches the token and re-fetches it once it expires, so `PingOneMfaClient` never touches token logic directly ([`OAuth2ClientHttpRequestInterceptor`][OAuth2ClientHttpRequestInterceptor] stamps every outgoing request).
 - Our own `/api/mfa/**` endpoints are intentionally `permitAll()` in this demo (see [Security notes](#security-notes)) — a real deployment fronts them with its own auth.
 
 </ul>
@@ -103,7 +103,7 @@ export PING_WORKER_CLIENT_SECRET=your-worker-client-secret
 
 <ul>
 
-- `ping.environment-id`, `ping.auth-base-url`, `ping.api-base-url` — bound via `PingOneProperties` (`@ConfigurationPropertiesScan`, no `@Component`/`@EnableConfigurationProperties` boilerplate needed).
+- `ping.environment-id`, `ping.auth-base-url`, `ping.api-base-url` — bound via `PingOneProperties` ([`@ConfigurationPropertiesScan`][ConfigurationPropertiesScan], no [`@Component`][Component]/[`@EnableConfigurationProperties`][EnableConfigurationProperties] boilerplate needed).
 - `spring.security.oauth2.client.registration.pingone-worker.*` — the `client_credentials` registration Spring Security uses to fetch the worker token; `spring.security.oauth2.client.provider.pingone-worker.token-uri` points at `auth.pingone.com/{environmentId}/as/token`.
 - See `application.yaml` for the full set and defaults.
 
@@ -209,8 +209,8 @@ sequenceDiagram
 
 <ul>
 
-- `LearningPingMfaApplicationTests` — full `@SpringBootTest` context load, proves the real app (worker OAuth2 registration, both `RestClient` beans, `SecurityConfig`) wires up without a live PingOne connection — no network call happens at context-startup, only lazily on the first outbound request.
-- `PingMfaControllerTest` — `@WebMvcTest` slice with `PingOneMfaClient` mocked via `@MockitoBean`, asserting our controller's JSON shape independent of PingOne being reachable.
+- `LearningPingMfaApplicationTests` — full [`@SpringBootTest`][SpringBootTest] context load, proves the real app (worker OAuth2 registration, both [`RestClient`][RestClient] beans, `SecurityConfig`) wires up without a live PingOne connection — no network call happens at context-startup, only lazily on the first outbound request.
+- `PingMfaControllerTest` — [`@WebMvcTest`][WebMvcTest] slice with `PingOneMfaClient` mocked via [`@MockitoBean`][MockitoBean], asserting our controller's JSON shape independent of PingOne being reachable.
 
 </ul>
 
@@ -237,3 +237,15 @@ sequenceDiagram
 - [Getting started — create a test environment](https://developer.pingidentity.com/pingone-api/getting-started/create-a-test-environment/step-1-get-access-token.html)
 
 </ul>
+
+<!-- Library classes mentioned above, linked to their source at the versions this project builds with. -->
+
+[Component]: https://github.com/spring-projects/spring-framework/blob/v7.0.9/spring-context/src/main/java/org/springframework/stereotype/Component.java
+[ConfigurationPropertiesScan]: https://github.com/spring-projects/spring-boot/blob/v4.1.1/core/spring-boot/src/main/java/org/springframework/boot/context/properties/ConfigurationPropertiesScan.java
+[EnableConfigurationProperties]: https://github.com/spring-projects/spring-boot/blob/v4.1.1/core/spring-boot/src/main/java/org/springframework/boot/context/properties/EnableConfigurationProperties.java
+[MockitoBean]: https://github.com/spring-projects/spring-framework/blob/v7.0.9/spring-test/src/main/java/org/springframework/test/context/bean/override/mockito/MockitoBean.java
+[OAuth2AuthorizedClientManager]: https://github.com/spring-projects/spring-security/blob/7.1.1/oauth2/oauth2-client/src/main/java/org/springframework/security/oauth2/client/OAuth2AuthorizedClientManager.java
+[OAuth2ClientHttpRequestInterceptor]: https://github.com/spring-projects/spring-security/blob/7.1.1/oauth2/oauth2-client/src/main/java/org/springframework/security/oauth2/client/web/client/OAuth2ClientHttpRequestInterceptor.java
+[RestClient]: https://github.com/spring-projects/spring-framework/blob/v7.0.9/spring-web/src/main/java/org/springframework/web/client/RestClient.java
+[SpringBootTest]: https://github.com/spring-projects/spring-boot/blob/v4.1.1/core/spring-boot-test/src/main/java/org/springframework/boot/test/context/SpringBootTest.java
+[WebMvcTest]: https://github.com/spring-projects/spring-boot/blob/v4.1.1/module/spring-boot-webmvc-test/src/main/java/org/springframework/boot/webmvc/test/autoconfigure/WebMvcTest.java
