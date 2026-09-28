@@ -23,16 +23,16 @@
 <a id="stack"></a>
 ## <span style="color:hsl(278,80%,58%)">1. 🧰 Stack</span>
 
-| Component        | Version / Detail                                             |
-|-------------------|----------------------------------------------------------------|
-| Java              | 25                                                              |
-| Spring Boot       | 4.1.1 (via super-pom 1.1.3, as of 2026)                         |
-| Spring Security   | OAuth2 Client — client_credentials only, no login flow          |
-| HTTP client       | [`RestClient`][RestClient] + [`OAuth2ClientHttpRequestInterceptor`][OAuth2ClientHttpRequestInterceptor]             |
-| API docs          | springdoc-openapi (Swagger UI)                                  |
-| Identity provider | PingOne (Ping Identity) — Platform API + MFA API                |
-| Tests             | JUnit 5, [`@WebMvcTest`][WebMvcTest] + Mockito                                 |
-| Build             | Maven 3.9+                                                      |
+| Component         | Version / Detail                                                                                        |
+|-------------------|---------------------------------------------------------------------------------------------------------|
+| Java              | 27                                                                                                      |
+| Spring Boot       | 4.1.1 (via super-pom 1.2.0)                                                                             |
+| Spring Security   | OAuth2 Client — client_credentials only, no login flow                                                  |
+| HTTP client       | [`RestClient`][RestClient] + [`OAuth2ClientHttpRequestInterceptor`][OAuth2ClientHttpRequestInterceptor] |
+| API docs          | springdoc-openapi (Swagger UI)                                                                          |
+| Identity provider | PingOne (Ping Identity) — Platform API + MFA API                                                        |
+| Tests             | JUnit 5, [`@WebMvcTest`][WebMvcTest] + Mockito                                                          |
+| Build             | Maven 3.9+                                                                                              |
 
 <a id="what-is-pingone-mfa"></a>
 ## <span style="color:hsl(56,80%,50%)">2. 📖 What is PingOne MFA?</span>
@@ -210,7 +210,8 @@ sequenceDiagram
 <ul>
 
 - `LearningPingMfaApplicationTests` — full [`@SpringBootTest`][SpringBootTest] context load, proves the real app (worker OAuth2 registration, both [`RestClient`][RestClient] beans, `SecurityConfig`) wires up without a live PingOne connection — no network call happens at context-startup, only lazily on the first outbound request.
-- `PingMfaControllerTest` — [`@WebMvcTest`][WebMvcTest] slice with `PingOneMfaClient` mocked via [`@MockitoBean`][MockitoBean], asserting our controller's JSON shape independent of PingOne being reachable.
+- `PingMfaControllerTest` — [`@WebMvcTest`][WebMvcTest] slice with `PingOneMfaClient` mocked via [`@MockitoBean`][MockitoBean], asserting our controller's JSON shape independent of PingOne being reachable. It also pins the error mapping (PingOne 401/5xx → 502, PingOne 400 passed through) and the OTP format check.
+- `PingOneMfaClientTest` — binds [`MockRestServiceServer`][MockRestServiceServer] to the `RestClient` to pin PingOne's wire contract: JSON user reference for `deviceAuthentications`, the `application/vnd.pingidentity.otp.check+json` media type for the OTP check, and ids staying inside their URL path segment.
 
 </ul>
 
@@ -220,7 +221,9 @@ sequenceDiagram
 <ul>
 
 - Never commit real `PING_WORKER_CLIENT_SECRET`/`PING_ENVIRONMENT_ID` values — `application.yaml` only holds `${ENV_VAR:placeholder}` defaults.
-- `spring-boot-starter-oauth2-client` on the classpath auto-secures the *whole app* with a browser-login filter chain by default — `SecurityConfig` replaces that with an explicit, intentional `permitAll()` chain (see its javadoc). A real deployment must put real auth here before this API is reachable from anywhere but localhost.
+- `spring-boot-starter-oauth2-client` on the classpath auto-secures the *whole app* with a browser-login filter chain by default — `SecurityConfig` replaces that with an explicit, intentional `permitAll()` chain (see its javadoc). A real deployment must put real auth here before this API is reachable from anywhere but localhost. It should also take the PingOne `userId` from the authenticated principal instead of the URL path: as it stands, any caller can enrol devices for, or start MFA against, any user in the environment with the worker's privileges.
+- PingOne errors are not all relayed: a 401/403 from PingOne means *this service's worker credentials* were rejected and 5xx means PingOne is down, so `ApiExceptionHandler` answers 502 (504 for timeouts) and logs the upstream body rather than telling the caller they are unauthenticated. Errors about the caller's input (400 wrong OTP, 404 unknown user, 429) pass through with PingOne's status and body.
+- The OTP must be 6–10 digits before any PingOne call is made, and user/authentication ids are expanded as URI variables, which `RestClient` percent-encodes — an id like `../../users` stays inside its path segment instead of reaching another PingOne endpoint with the worker token.
 - Scope the Worker application's roles to the minimum this app actually calls (`Identity Data Admin` + `mfa:authenticate:device`) — not a full admin role — the same "least privilege for a worker/service account" principle applies here as for any machine client.
 
 </ul>
@@ -244,6 +247,7 @@ sequenceDiagram
 [ConfigurationPropertiesScan]: https://github.com/spring-projects/spring-boot/blob/v4.1.1/core/spring-boot/src/main/java/org/springframework/boot/context/properties/ConfigurationPropertiesScan.java
 [EnableConfigurationProperties]: https://github.com/spring-projects/spring-boot/blob/v4.1.1/core/spring-boot/src/main/java/org/springframework/boot/context/properties/EnableConfigurationProperties.java
 [MockitoBean]: https://github.com/spring-projects/spring-framework/blob/v7.0.9/spring-test/src/main/java/org/springframework/test/context/bean/override/mockito/MockitoBean.java
+[MockRestServiceServer]: https://github.com/spring-projects/spring-framework/blob/v7.0.9/spring-test/src/main/java/org/springframework/test/web/client/MockRestServiceServer.java
 [OAuth2AuthorizedClientManager]: https://github.com/spring-projects/spring-security/blob/7.1.1/oauth2/oauth2-client/src/main/java/org/springframework/security/oauth2/client/OAuth2AuthorizedClientManager.java
 [OAuth2ClientHttpRequestInterceptor]: https://github.com/spring-projects/spring-security/blob/7.1.1/oauth2/oauth2-client/src/main/java/org/springframework/security/oauth2/client/web/client/OAuth2ClientHttpRequestInterceptor.java
 [RestClient]: https://github.com/spring-projects/spring-framework/blob/v7.0.9/spring-web/src/main/java/org/springframework/web/client/RestClient.java
