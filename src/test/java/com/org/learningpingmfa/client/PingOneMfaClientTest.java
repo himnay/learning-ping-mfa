@@ -61,4 +61,16 @@ class PingOneMfaClientTest {
         assertThat(response.status()).isEqualTo("COMPLETED");
         server.verify();
     }
+
+    @Test
+    void idsStayInsideTheirPathSegment() {
+        // A crafted id must not walk to another PingOne endpoint with the worker token: RestClient encodes
+        // URI variables strictly (EncodingMode.TEMPLATE_AND_VALUES), so "/" becomes %2F.
+        server.expect(requestTo(AUTH + "/deviceAuthentications/..%2F..%2Fusers"))
+                .andRespond(withSuccess("{\"id\":\"x\",\"status\":\"FAILED\"}", MediaType.APPLICATION_JSON));
+
+        client.checkOtp("../../users", new OtpCheckRequest("555555"));
+
+        server.verify();
+    }
 }
