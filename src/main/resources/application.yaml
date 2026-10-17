@@ -1,3 +1,6 @@
+server:
+  port: 8090
+
 spring:
   application:
     name: learning-ping-mfa
@@ -14,9 +17,6 @@ spring:
         provider:
           pingone-worker:
             token-uri: https://auth.pingone.com/${PING_ENVIRONMENT_ID:changeme-environment-id}/as/token
-
-server:
-  port: 8090
 
 ping:
   environment-id: ${PING_ENVIRONMENT_ID:changeme-environment-id}
