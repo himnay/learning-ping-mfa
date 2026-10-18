@@ -32,8 +32,8 @@ import java.nio.charset.StandardCharsets;
  * *login* filter chain (see SecurityConfig's javadoc) — which fails to build inside the slice.
  * Importing our own permit-all chain here mirrors what component scanning gives the real app.
  */
-@WebMvcTest(PingMfaController.class)
 @Import(SecurityConfig.class)
+@WebMvcTest(PingMfaController.class)
 class PingMfaControllerTest {
 
     @Autowired

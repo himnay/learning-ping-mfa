@@ -4,10 +4,12 @@ import com.org.learningpingmfa.dto.DeviceAuthenticationResponse;
 import com.org.learningpingmfa.dto.OtpCheckRequest;
 import com.org.learningpingmfa.dto.PingOneDeviceRequest;
 import com.org.learningpingmfa.dto.PingOneDeviceResponse;
+import com.org.learningpingmfa.dto.PingOneDevicesPage;
 import com.org.learningpingmfa.dto.RegisterDeviceRequest;
 
 import java.util.List;
 
+import com.org.learningpingmfa.dto.UserRef;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -81,15 +83,5 @@ public class PingOneMfaClient {
                 .body(otp)
                 .retrieve()
                 .body(DeviceAuthenticationResponse.class);
-    }
-
-    private record UserRef(Id user) {
-        private record Id(String id) {
-        }
-    }
-
-    private record PingOneDevicesPage(Embedded _embedded) {
-        private record Embedded(List<PingOneDeviceResponse> devices) {
-        }
     }
 }
