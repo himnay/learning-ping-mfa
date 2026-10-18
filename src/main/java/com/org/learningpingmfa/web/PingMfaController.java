@@ -7,6 +7,7 @@ import com.org.learningpingmfa.dto.PingOneDeviceResponse;
 import com.org.learningpingmfa.dto.RegisterDeviceRequest;
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,14 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
  * top of the worker-token calls this service makes to PingOne on the caller's behalf.
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/mfa")
 public class PingMfaController {
 
     private final PingOneMfaClient pingOneMfaClient;
-
-    public PingMfaController(PingOneMfaClient pingOneMfaClient) {
-        this.pingOneMfaClient = pingOneMfaClient;
-    }
 
     @PostMapping("/users/{userId}/devices")
     public ResponseEntity<PingOneDeviceResponse> registerDevice(
